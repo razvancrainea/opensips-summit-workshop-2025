@@ -1,0 +1,45 @@
+---
+services:
+  opensips:
+    image: opensips/opensips:siprec
+    container_name: opensips
+    volumes:
+      - ./opensips:/etc/opensips
+    network_mode: "host"
+
+  rtpproxy:
+    image: sippylabs/rtpproxy
+    container_name: rtpproxy
+    network_mode: "host"
+    command:
+      - -s
+      - udp:127.0.0.1:22222
+      - --dso
+      - /usr/local/lib/rtpproxy/rtpp_catch_dtmf.so
+      - -n
+      - tcp:127.0.0.1:9999
+
+  sippy-recorder:
+    image: sippy_recorder:latest
+    network_mode: "host"
+    container_name: sippy-recorder
+    volumes:
+      - ./recorder:/usr/share/recorder
+    environment:
+      SIPLOG_BEND: none
+    command:
+      - --sip_port=5090
+      - --ui
+      - --uiparams=ssl_context=/usr/share/recorder/ssl/server.crt,/usr/share/recorder/ssl/server.key;host=127.0.0.1;port=44344
+      - --rtp_proxy_client=rtp.io:-d;dbug;-S;/usr/share/recorder/spool;-r;/usr/share/recorder/recordings;-P
+
+  freeswitch:
+    image: opensips/freeswitch-ce
+    container_name: freeswitch
+    network_mode: "host"
+    volumes:
+      - ./freeswitch:/etc/freeswitch/dialplan
+      - ./freeswitch/music:/usr/share/freeswitch/sounds/music
+      - ./freeswitch/conf:/docker-entrypoint.d
+    cap_add:
+      - SYS_NICE

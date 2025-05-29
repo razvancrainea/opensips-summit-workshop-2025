@@ -1,0 +1,11 @@
+<include>
+  <context name="public">
+    <extension name="anything">
+      <condition>
+        <action application="answer"/>
+        <action application="sleep" data="500"/>
+        <action application="endless_playback" data="$${hold_music}"/>
+      </condition>
+    </extension>
+  </context>
+</include>
